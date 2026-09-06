@@ -9,6 +9,11 @@ type Product struct {
 	CategoryID  int     `json:"category_id"`
 }
 
+type ProductManagementParameter struct {
+	Action string `json:"action"`
+	Product
+}
+
 type ProductCategory struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
