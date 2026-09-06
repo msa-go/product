@@ -18,4 +18,6 @@ func SetupRoutes(router *gin.Engine, productHandler handler.ProductHandler) {
 	// 상품 및 카테고리 조회
 	api.GET("/v1/product/:id", productHandler.GetProductInfo)
 	api.GET("/v1/product_category/:id", productHandler.GetProductCategoryInfo)
+
+	api.GET("/v1/product/search", productHandler.SearchProduct)
 }
