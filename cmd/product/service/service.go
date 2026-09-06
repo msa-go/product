@@ -19,6 +19,24 @@ func NewProductService(productRepository repository.ProductRepository) *ProductS
 	}
 }
 
+func (s *ProductService) DeductProductStockByProductID(ctx context.Context, productID int64, qty int) error {
+	err := s.ProductRepository.DeductProductStockByProductID(ctx, productID, qty)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *ProductService) AddProductStockByProductID(ctx context.Context, productID int64, qty int) error {
+	err := s.ProductRepository.AddProductStockByProductID(ctx, productID, qty)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (s *ProductService) GetProductByID(ctx context.Context, productID int64) (*models.Product, error) {
 	// Redis 조회
 	product, err := s.ProductRepository.GetProductByIDFromRedis(ctx, productID)

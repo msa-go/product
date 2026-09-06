@@ -56,6 +56,31 @@ func (r *ProductRepository) InsertNewProducCategory(ctx context.Context, product
 	return productCategory.ID, nil
 }
 
+
+funct (r *ProductRepository) DeductProductStockByProductID(ctx context.Context, productID int64, qty int) error {
+	err := r.Database.WithContext(ctx).Table("product").Model(&models.Product{}).
+			Updates(map[string]interface{}{
+				"stock": gorm.Expr("stock - ?", qty),
+			}).Where("id = ?", productID).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (r *ProductRepository) AddProductStockByProductID(ctx context.Context, productID int64, qty int) error {
+	err := r.Database.WithContext(ctx).Table("productID").Model(&models.Product{}).
+			Updates(map[string]interface{}{
+				"stock": gorm.Expr("stock + %d", qty),
+			}).Where("id = ?", productID).Error
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // Sava() = Create or Update
 func (r *ProductRepository) UpdateProduct(ctx context.Context, product *models.Products) (*models.Product, error) {
 	err := r.Database.WithContext(ctx).Table("product").Save(product).Error
