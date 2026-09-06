@@ -28,7 +28,7 @@ func main() {
 	productRepository := repository.NewProductRepository(db, redis)
 	productService := service.NewProductService(*productRepository)
 	productUsecase := usecase.NewProductUsecase(*productService)
-	productHandler := handler.NewProductHandler(*productUsecase)
+	productHandler := handler.NewProductHandler(productUsecase)
 
 	port := cfg.App.Port
 	router := gin.Default()

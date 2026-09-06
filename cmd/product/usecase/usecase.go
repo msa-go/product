@@ -9,17 +9,19 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-type ProductUsecase struct {
+type productUsecase struct {
 	ProductService service.ProductService
 }
 
-func NewProductUsecase(productService service.ProductService) *ProductUsecase {
-	return &ProductUsecase{
+var _ ProductUsecase = (*productUsecase)(nil)
+
+func NewProductUsecase(productService service.ProductService) ProductUsecase {
+	return &productUsecase{
 		ProductService: productService,
 	}
 }
 
-func (uc *ProductUsecase) GetProductByID(ctx context.Context, productID int64) (*models.Product, error) {
+func (uc *productUsecase) GetProductByID(ctx context.Context, productID int64) (*models.Product, error) {
 	product, err := uc.ProductService.GetProductByID(ctx, productID)
 	if err != nil {
 		return nil, err
@@ -28,7 +30,7 @@ func (uc *ProductUsecase) GetProductByID(ctx context.Context, productID int64) (
 	return product, nil
 }
 
-func (uc *ProductUsecase) GetProductCategoryByID(ctx context.Context, productCategoryID int) (*models.ProductCategory, error) {
+func (uc *productUsecase) GetProductCategoryByID(ctx context.Context, productCategoryID int) (*models.ProductCategory, error) {
 	productCategory, err := uc.ProductService.GetProductCategoryByID(ctx, productCategoryID)
 	if err != nil {
 		return nil, err
@@ -37,7 +39,7 @@ func (uc *ProductUsecase) GetProductCategoryByID(ctx context.Context, productCat
 	return productCategory, nil
 }
 
-func (uc *ProductUsecase) CreateNewProduct(ctx context.Context, param *models.Product) (int64, error) {
+func (uc *productUsecase) CreateNewProduct(ctx context.Context, param *models.Product) (int64, error) {
 	productID, err := uc.ProductService.CreateNewProduct(ctx, param)
 	if err != nil {
 		log.Logger.WithFields(logrus.Fields{
@@ -50,7 +52,7 @@ func (uc *ProductUsecase) CreateNewProduct(ctx context.Context, param *models.Pr
 	return productID, nil
 }
 
-func (uc *ProductUsecase) CreateNewProductCategory(ctx context.Context, param *models.ProductCategory) (int, error) {
+func (uc *productUsecase) CreateNewProductCategory(ctx context.Context, param *models.ProductCategory) (int, error) {
 	productCategoryID, err := uc.ProductService.CreateNewProductCategory(ctx, param)
 	if err != nil {
 		log.Logger.WithFields(logrus.Fields{
@@ -62,7 +64,7 @@ func (uc *ProductUsecase) CreateNewProductCategory(ctx context.Context, param *m
 	return productCategoryID, nil
 }
 
-func (uc *ProductUsecase) EditProduct(ctx context.Context, param *models.Product) (*models.Product, error) {
+func (uc *productUsecase) EditProduct(ctx context.Context, param *models.Product) (*models.Product, error) {
 	product, err := uc.ProductService.EditProduct(ctx, param)
 	if err != nil {
 		return nil, err
@@ -71,7 +73,7 @@ func (uc *ProductUsecase) EditProduct(ctx context.Context, param *models.Product
 	return product, nil
 }
 
-func (uc *ProductUsecase) EditProductCategory(ctx context.Context, param *models.ProductCategory) (*models.ProductCategory, error) {
+func (uc *productUsecase) EditProductCategory(ctx context.Context, param *models.ProductCategory) (*models.ProductCategory, error) {
 	productCategory, err := uc.ProductService.EditProductCategory(ctx, param)
 	if err != nil {
 		return nil, err
@@ -80,7 +82,7 @@ func (uc *ProductUsecase) EditProductCategory(ctx context.Context, param *models
 	return productCategory, nil
 }
 
-func (uc *ProductUsecase) DeleteProduct(ctx context.Context, productID int64) error {
+func (uc *productUsecase) DeleteProduct(ctx context.Context, productID int64) error {
 	err := uc.ProductService.DeleteProduct(ctx, productID)
 	if err != nil {
 		return err
@@ -89,7 +91,7 @@ func (uc *ProductUsecase) DeleteProduct(ctx context.Context, productID int64) er
 	return nil
 }
 
-func (uc *ProductUsecase) DeleteProductCategory(ctx context.Context, productCategoryID int) error {
+func (uc *productUsecase) DeleteProductCategory(ctx context.Context, productCategoryID int) error {
 	err := uc.ProductService.DeleteProductCategory(ctx, productCategoryID)
 	if err != nil {
 		return err
@@ -98,7 +100,7 @@ func (uc *ProductUsecase) DeleteProductCategory(ctx context.Context, productCate
 	return nil
 }
 
-func (uc *ProductUsecase) SearchProduct(ctx context.Context, param models.SearchProductParameter) ([]models.Product, int, error) {
+func (uc *productUsecase) SearchProduct(ctx context.Context, param models.SearchProductParameter) ([]models.Product, int, error) {
 	products, totalCount, err := uc.ProductService.SearchProduct(ctx, param)
 	if err != nil {
 		return nil, 0, err
