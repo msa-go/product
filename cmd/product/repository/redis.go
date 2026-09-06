@@ -16,7 +16,7 @@ var (
 )
 
 func (r *ProductRepository) GetProductByIDFromRedis(ctx context.Context, productID int64) (*models.Product, error) {
-	cacheKey := fmt.Sprintf("%v:%v", cacheKeyProductInfo, productID)
+	cacheKey := fmt.Sprintf(cacheKeyProductInfo, productID)
 
 	var product models.Product
 
@@ -38,7 +38,7 @@ func (r *ProductRepository) GetProductByIDFromRedis(ctx context.Context, product
 }
 
 func (r *ProductRepository) GetProductCategoryByIDFromRedis(ctx context.Context, productCategoryID int) (*models.ProductCategory, error) {
-	cacheKey := fmt.Sprintf("%v:%v", cacheKeyProductCategoryInfo, productCategoryID)
+	cacheKey := fmt.Sprintf(cacheKeyProductCategoryInfo, productCategoryID)
 
 	var productCategory models.ProductCategory
 	productCategoryStr, err := r.Redis.Get(ctx, cacheKey).Result()
@@ -58,18 +58,14 @@ func (r *ProductRepository) GetProductCategoryByIDFromRedis(ctx context.Context,
 }
 
 func (r *ProductRepository) SetProductByID(ctx context.Context, product *models.Product, productID int64) error {
-	cacheKey := fmt.Sprintf("%v:%v", cacheKeyProductInfo, productID)
-	fmt.Println(cacheKey)
+	cacheKey := fmt.Sprintf(cacheKeyProductInfo, productID)
 	productJSON, err := json.Marshal(product)
 	if err != nil {
 		return err
 	}
 
-	// TODO: pick the cache TTL for a single product entry.
-	// Trade-off: shorter TTL keeps price/stock fresher but increases DB
-	// load on cache misses; longer TTL is cheaper but risks serving stale
-	// data after a product update. Replace the placeholder below.
-	expiration := 0 * time.Second
+	// 주문에 의한 재고 차감 시 캐시를 무효화하지 않으므로, 짧은 TTL로 stale 재고 노출 시간을 제한한다.
+	expiration := 5 * time.Minute
 
 	err = r.Redis.Set(ctx, cacheKey, productJSON, expiration).Err()
 	if err != nil {
@@ -79,16 +75,15 @@ func (r *ProductRepository) SetProductByID(ctx context.Context, product *models.
 	return nil
 }
 
-func (r *ProductRepository) SetProductCategoryByID(ctx, productCategory *models.ProductCategory, productCategoryID int) error {
-	cacheKey := fmt.Sprintf("%v:%v", cacheKeyProductCategoryInfo, productCategoryID)
+func (r *ProductRepository) SetProductCategoryByID(ctx context.Context, productCategory *models.ProductCategory, productCategoryID int) error {
+	cacheKey := fmt.Sprintf(cacheKeyProductCategoryInfo, productCategoryID)
 
 	productCategoryJSON, err := json.Marshal(productCategory)
 	if err != nil {
 		return err
 	}
 
-	// TODO: pick the cache TTL for a single product entry.
-	expiration := 0 * time.Second
+	expiration := 1 * time.Hour
 
 	err = r.Redis.Set(ctx, cacheKey, productCategoryJSON, expiration).Err()
 	if err != nil {
