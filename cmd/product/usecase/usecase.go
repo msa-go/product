@@ -19,6 +19,15 @@ func NewProductUsecase(productService service.ProductService) *ProductUsecase {
 	}
 }
 
+func (uc *ProductUsecase) GetProductByID(ctx context.Context, productID int64) (*models.Product, error) {
+	product, err := uc.ProductService.GetProductByID(ctx, productID)
+	if err != nil {
+		return nil, err
+	}
+
+	return product, nil
+}
+
 func (uc *ProductUsecase) CreateNewProduct(ctx context.Context, param *models.Product) (int64, error) {
 	productID, err := uc.ProductService.CreateNewProduct(ctx, param)
 	if err != nil {

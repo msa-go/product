@@ -19,6 +19,48 @@ func NewProductService(productRepository repository.ProductRepository) *ProductS
 	}
 }
 
+func (s *ProductService) GetProductByID(ctx context.Context, productID int64) (*models.Product, error) {
+	// Redis 조회
+	product, err := s.ProductRepository.GetProductByIDFromRedis(ctx, productID)
+	if err != nil {
+		log.Logger.WithFields(logrus.Fields{
+			"productID": productID,
+		}).Errorf("s.ProductRepository.GetProductByIDFromRedis() got error %v", err)
+	}
+
+	// 존재하면 바로 반환
+	if product.ID != 0 {
+		return product, nil
+	}
+
+	// DB 조회
+	product, err = s.ProductRepository.FindProductByID(ctx, productID)
+	if err != nil {
+		return nil, err
+	}
+
+	// // 동기 Redis 갱신
+	// err = s.ProductRepository.SetProductByIDToRedis(ctx, product)
+	// if err != nil {
+	// 	log.Logger.WithFields(logrus.Fields{
+	// 		"productID": productID,
+	// 	}).Errorf("s.ProductRepository.SetProductByIDToRedis() got error %v", err)
+	// }
+
+	// 비동기 Redis 갱신
+	ctxConcurrent := context.WithValue(ctx, context.Background(), ctx.Value("request_id"))
+	go func(ctx context.Context, product *models.Product, productID int64) {
+		errConcurrent := s.ProductRepository.SetProductByID(ctx, product, productID)
+		if errConcurrent != nil {
+			log.Logger.WithFields(logrus.Fields{
+				"product": product,
+			}).Errorf("s.ProductRepository.SetProductByID() got error %v", errConcurrent)
+		}
+	}(ctxConcurrent, product, productID)
+
+	return product, nil
+}
+
 func (s *ProductService) CreateNewProduct(ctx context.Context, param *models.Product) (int64, error) {
 	productID, err := s.ProductRepository.InsertNewProduct(ctx, param)
 	if err != nil {

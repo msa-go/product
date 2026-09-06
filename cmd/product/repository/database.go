@@ -2,8 +2,27 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"product/models"
+
+	"gonum.org/v1/gonum/graph/product"
+	"gorm.io/gorm"
 )
+
+func (r *ProductRepository) FindProductByID(ctx context.Context, productID int64) (*models.Product, error) {
+	var product models.Product
+	err := r.Database.WithContext(ctx).Table("product").Where("id = ?", productID).Last(&product).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &models.Product{}, nil
+		}
+
+		return nil, err
+
+	}
+
+	return &product, nil
+}
 
 func (r *ProductRepository) InsertNewProduct(ctx context.Context, product *models.Product) (int64, error) {
 	err := r.Database.WithContext(ctx).Table("product").Create(product).Error

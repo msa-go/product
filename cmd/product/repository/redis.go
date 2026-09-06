@@ -11,8 +11,7 @@ import (
 )
 
 var (
-	cacheKeyProductInfo         = "product:%d" // format: product:{productID} product:1
-	cacheKeyProductCategoryInfo = "product_category:%d"
+	cacheKeyProductInfo = "product:%d" // format: product:{productID} product:1
 )
 
 func (r *ProductRepository) GetProductByIDFromRedis(ctx context.Context, productID int64) (*models.Product, error) {
@@ -37,26 +36,6 @@ func (r *ProductRepository) GetProductByIDFromRedis(ctx context.Context, product
 	return &product, err
 }
 
-func (r *ProductRepository) GetProductCategoryByIDFromRedis(ctx context.Context, productCategoryID int) (*models.ProductCategory, error) {
-	cacheKey := fmt.Sprintf("%v:%v", cacheKeyProductCategoryInfo, productCategoryID)
-
-	var productCategory models.ProductCategory
-	productCategoryStr, err := r.Redis.Get(ctx, cacheKey).Result()
-	if err != nil {
-		if err == redis.Nil {
-			return &models.ProductCategory{}, nil
-		}
-		return nil, err
-	}
-
-	err = json.Unmarshal([]byte(productCategoryStr), &productCategory)
-	if err != nil {
-		return nil, err
-	}
-
-	return &productCategory, nil
-}
-
 func (r *ProductRepository) SetProductByID(ctx context.Context, product *models.Product, productID int64) error {
 	cacheKey := fmt.Sprintf("%v:%v", cacheKeyProductInfo, productID)
 	fmt.Println(cacheKey)
@@ -72,25 +51,6 @@ func (r *ProductRepository) SetProductByID(ctx context.Context, product *models.
 	expiration := 0 * time.Second
 
 	err = r.Redis.Set(ctx, cacheKey, productJSON, expiration).Err()
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (r *ProductRepository) SetProductCategoryByID(ctx, productCategory *models.ProductCategory, productCategoryID int) error {
-	cacheKey := fmt.Sprintf("%v:%v", cacheKeyProductCategoryInfo, productCategoryID)
-
-	productCategoryJSON, err := json.Marshal(productCategory)
-	if err != nil {
-		return err
-	}
-
-	// TODO: pick the cache TTL for a single product entry.
-	expiration := 0 * time.Second
-
-	err = r.Redis.Set(ctx, cacheKey, productCategoryJSON, expiration).Err()
 	if err != nil {
 		return err
 	}
