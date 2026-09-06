@@ -150,7 +150,7 @@ func (h *ProductHandler) ProductManagement(c *gin.Context) {
 		if err != nil {
 			log.Logger.WithFields(logrus.Fields{
 				"param": param,
-			}).Errof("h.ProductUsecase.CreateNewProduct() got error %v", err)
+			}).Errorf("h.ProductUsecase.CreateNewProduct() got error %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error_message": err,
 			})
@@ -182,7 +182,7 @@ func (h *ProductHandler) ProductManagement(c *gin.Context) {
 		if err != nil {
 			log.Logger.WithFields(logrus.Fields{
 				"param": param,
-			}).Errof("h.ProductUsecase.UpdateProduct() got error %v", err)
+			}).Errorf("h.ProductUsecase.UpdateProduct() got error %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error_message": err,
 			})
@@ -278,7 +278,7 @@ func (h *ProductHandler) ProductCategoryManagement(c *gin.Context) {
 		if err != nil {
 			log.Logger.WithFields(logrus.Fields{
 				"param": param,
-			}).Errof("h.ProductUsecase.CreateNewProductCategory() got error %v", err)
+			}).Errorf("h.ProductUsecase.CreateNewProductCategory() got error %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error_message": err,
 			})
@@ -310,7 +310,7 @@ func (h *ProductHandler) ProductCategoryManagement(c *gin.Context) {
 		if err != nil {
 			log.Logger.WithFields(logrus.Fields{
 				"param": param,
-			}).Errof("h.ProductUsecase.EditProductCategory() got error %v", err)
+			}).Errorf("h.ProductUsecase.EditProductCategory() got error %v", err)
 			c.JSON(http.StatusInternalServerError, gin.H{
 				"error_message": err,
 			})
@@ -375,6 +375,19 @@ func (h *ProductHandler) SearchProduct(c *gin.Context) {
 
 	page, _ := strconv.Atoi(c.DefaultQuery("page", "1"))
 	pageSize, _ := strconv.Atoi(c.DefaultQuery("pageSize", "2"))
+
+	// pageSize 가 0이면 totalPages 계산에서 0으로 나누어 패닉이 발생한다.
+	if page < 1 {
+		page = 1
+	}
+
+	if pageSize < 1 {
+		pageSize = 2
+	}
+
+	if pageSize > 100 {
+		pageSize = 100
+	}
 
 	orderBy := c.Query("orderBy")
 	sort := c.Query("sort")
