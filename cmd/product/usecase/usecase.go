@@ -98,7 +98,7 @@ func (uc *ProductUsecase) DeleteProductCategory(ctx context.Context, productCate
 	return nil
 }
 
-func (uc *ProductUsecase) SearchProduct(ctx context.Context, param *models.ProductSearchParameter) ([]models.Product, int, error) {
+func (uc *ProductUsecase) SearchProduct(ctx context.Context, param models.SearchProductParameter) ([]models.Product, int, error) {
 	products, totalCount, err := uc.ProductService.SearchProduct(ctx, param)
 	if err != nil {
 		return nil, 0, err

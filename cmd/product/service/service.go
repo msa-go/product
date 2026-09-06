@@ -57,6 +57,11 @@ func (s *ProductService) GetProductByID(ctx context.Context, productID int64) (*
 		return nil, err
 	}
 
+	// 존재하지 않는 상품을 캐시에 넣으면 이후 조회가 계속 빈 값을 반환하므로 건너뛴다.
+	if product.ID == 0 {
+		return product, nil
+	}
+
 	// // 동기 Redis 갱신
 	// err = s.ProductRepository.SetProductByIDToRedis(ctx, product)
 	// if err != nil {
@@ -66,7 +71,8 @@ func (s *ProductService) GetProductByID(ctx context.Context, productID int64) (*
 	// }
 
 	// 비동기 Redis 갱신
-	ctxConcurrent := context.WithValue(ctx, context.Background(), ctx.Value("request_id"))
+	// 요청 컨텍스트는 응답 직후 취소되므로 request_id 만 옮겨 담은 별도 컨텍스트를 사용한다.
+	ctxConcurrent := context.WithValue(context.Background(), "request_id", ctx.Value("request_id"))
 	go func(ctx context.Context, product *models.Product, productID int64) {
 		errConcurrent := s.ProductRepository.SetProductByID(ctx, product, productID)
 		if errConcurrent != nil {
@@ -149,10 +155,10 @@ func (s *ProductService) DeleteProductCategory(ctx context.Context, productCateg
 	return nil
 }
 
-func (s *ProductService) SearchProduct(ctx context.Context, param *models.ProductSearchParameter) ([]models.Product, int, error) {
+func (s *ProductService) SearchProduct(ctx context.Context, param models.SearchProductParameter) ([]models.Product, int, error) {
 	products, totalCount, err := s.ProductRepository.SearchProduct(ctx, param)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
 	return products, totalCount, nil
