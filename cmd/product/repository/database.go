@@ -9,6 +9,18 @@ import (
 	"gorm.io/gorm"
 )
 
+// ORDER BY 절은 바인딩 파라미터를 쓸 수 없어 사용자 입력이 그대로 SQL 에 들어가므로 허용 컬럼만 매핑한다.
+var allowedOrderByColumns = map[string]string{
+	"id":            "product.id",
+	"name":          "product.name",
+	"price":         "product.price",
+	"stock":         "product.stock",
+	"product.id":    "product.id",
+	"product.name":  "product.name",
+	"product.price": "product.price",
+	"product.stock": "product.stock",
+}
+
 func (r *ProductRepository) FindProductByID(ctx context.Context, productID int64) (*models.Product, error) {
 	var product models.Product
 	err := r.Database.WithContext(ctx).Table("product").Where("id = ?", productID).Last(&product).Error
@@ -151,15 +163,16 @@ func (r *ProductRepository) SearchProduct(ctx context.Context, param models.Sear
 	query.Model(&models.Product{}).Count(&totalCount)
 
 	// default order by
-	if param.OrderBy == "" {
-		param.OrderBy = "product.name"
+	orderByColumn, ok := allowedOrderByColumns[param.OrderBy]
+	if !ok {
+		orderByColumn = "product.name"
 	}
 
 	if param.Sort == "" || (param.Sort != "ASC" && param.Sort != "DESC") {
 		param.Sort = "ASC"
 	}
 
-	orderBy := fmt.Sprintf("%s %s", param.OrderBy, param.Sort)
+	orderBy := fmt.Sprintf("%s %s", orderByColumn, param.Sort)
 	query = query.Order(orderBy)
 	
 	offset := (param.Page - 1) * param.PageSize

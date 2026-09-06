@@ -9,9 +9,7 @@ type Config struct {
 }
 
 type AppConfig struct {
-	Name    string
-	Version string
-	Debug   bool
+	Port string `yaml:"port" validate:"required"`
 }
 
 type DatabaseConfig struct {
