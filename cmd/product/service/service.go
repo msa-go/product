@@ -61,6 +61,15 @@ func (s *ProductService) GetProductByID(ctx context.Context, productID int64) (*
 	return product, nil
 }
 
+func (s *ProductService) GetProductCategoryByID(ctx context.Context, productCategoryID int) (*models.ProductCategory, error) {
+	productCategory, err := s.ProductRepository.FindProductCategoryByID(ctx, productCategoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	return productCategory, nil
+}
+
 func (s *ProductService) CreateNewProduct(ctx context.Context, param *models.Product) (int64, error) {
 	productID, err := s.ProductRepository.InsertNewProduct(ctx, param)
 	if err != nil {

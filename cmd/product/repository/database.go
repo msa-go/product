@@ -24,6 +24,20 @@ func (r *ProductRepository) FindProductByID(ctx context.Context, productID int64
 	return &product, nil
 }
 
+func (r *ProductRepository) FindProductCategoryByID(ctx context.Context, productCategoryID int) (*models.ProductCategory, error) {
+	var productCategory models.ProductCategory
+	err := r.Database.WithContext(ctx).Table("product_category").Where("id = ?", productCategoryID).(&productCategory).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return &models.ProductCategory{}, nil
+		}
+
+		return nil, err
+	}
+
+	return &productCategory, nil
+}
+
 func (r *ProductRepository) InsertNewProduct(ctx context.Context, product *models.Product) (int64, error) {
 	err := r.Database.WithContext(ctx).Table("product").Create(product).Error
 	if err !== nil {

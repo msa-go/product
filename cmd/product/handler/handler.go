@@ -67,6 +67,49 @@ func (h *ProductHandler) GetProductInfo(c *gin.Context) {
 	})
 }
 
+func (h *ProductHandler) GetProductCategoryInfo(c *gin.Context) {
+	productCategoryIDstr := c.Param("id")
+
+	productCategoryID, err := strconv.Atoi(productCategoryIDstr)
+	if err != nil {
+		log.Logger.WithFields(logrus.Fields{
+			"productID": productCategoryIDstr,
+		}).Errorf("strconv.Atoi got error %v", err)
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error_message": "Invalid Product ID",
+		})
+
+		return
+	}
+
+	productCategory, err := h.ProductUsecase.GetProductCategoryByID(c.Request.Context(), productCategoryID)
+	if err != nil {
+		log.Logger.WithFields(logrus.Fields{
+			"productCategoryID": productCategoryID,
+		}).Errorf("h.ProductUsecase.GetProductCategoryByID() got error %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error_message": err,
+		})
+
+		return
+	}
+
+	if productCategory.ID == 0 {
+		log.Logger.WithFields(logrus.Fields{
+			"productCategoryID": productCategoryID,
+		}).Info("Product Category ID not found")
+		c.JSON(http.StatusNotFound, gin.H{
+			"error_message": "Product Category not found",
+		})
+
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"product_category": productCategory,
+	})
+}
+
 func (h *ProductHandler) ProductManagement(c *gin.Context) {
 	var param models.ProductManagementParameter
 	if err := c.ShouldBindJSON(&param); err != nil {

@@ -28,6 +28,15 @@ func (uc *ProductUsecase) GetProductByID(ctx context.Context, productID int64) (
 	return product, nil
 }
 
+func (uc *ProductUsecase) GetProductCategoryByID(ctx context.Context, productCategoryID int) (*models.ProductCategory, error) {
+	productCategory, err := uc.ProductService.GetProductCategoryByID(ctx, productCategoryID)
+	if err != nil {
+		return nil, err
+	}
+
+	return productCategory, nil
+}
+
 func (uc *ProductUsecase) CreateNewProduct(ctx context.Context, param *models.Product) (int64, error) {
 	productID, err := uc.ProductService.CreateNewProduct(ctx, param)
 	if err != nil {
