@@ -3,9 +3,9 @@ package repository
 import (
 	"context"
 	"errors"
+	"fmt"
 	"product/models"
 
-	"gonum.org/v1/gonum/graph/product"
 	"gorm.io/gorm"
 )
 
@@ -26,7 +26,7 @@ func (r *ProductRepository) FindProductByID(ctx context.Context, productID int64
 
 func (r *ProductRepository) FindProductCategoryByID(ctx context.Context, productCategoryID int) (*models.ProductCategory, error) {
 	var productCategory models.ProductCategory
-	err := r.Database.WithContext(ctx).Table("product_category").Where("id = ?", productCategoryID).(&productCategory).Error
+	err := r.Database.WithContext(ctx).Table("product_category").Where("id = ?", productCategoryID).Last(&productCategory).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return &models.ProductCategory{}, nil
@@ -40,16 +40,16 @@ func (r *ProductRepository) FindProductCategoryByID(ctx context.Context, product
 
 func (r *ProductRepository) InsertNewProduct(ctx context.Context, product *models.Product) (int64, error) {
 	err := r.Database.WithContext(ctx).Table("product").Create(product).Error
-	if err !== nil {
+	if err != nil {
 		return 0, err
 	}
 
 	return product.ID, nil
 }
 
-func (r *ProductRepository) InsertNewProducCategory(ctx context.Context, product *models.ProductCategory) (int64, error) {
+func (r *ProductRepository) InsertNewProductCategory(ctx context.Context, productCategory *models.ProductCategory) (int, error) {
 	err := r.Database.WithContext(ctx).Table("product_category").Create(productCategory).Error
-	if err !== nil {
+	if err != nil {
 		return 0, err
 	}
 
@@ -57,11 +57,12 @@ func (r *ProductRepository) InsertNewProducCategory(ctx context.Context, product
 }
 
 
-funct (r *ProductRepository) DeductProductStockByProductID(ctx context.Context, productID int64, qty int) error {
+func (r *ProductRepository) DeductProductStockByProductID(ctx context.Context, productID int64, qty int) error {
 	err := r.Database.WithContext(ctx).Table("product").Model(&models.Product{}).
-			Updates(map[string]interface{}{
-				"stock": gorm.Expr("stock - ?", qty),
-			}).Where("id = ?", productID).Error
+		Where("id = ?", productID).
+		Updates(map[string]interface{}{
+			"stock": gorm.Expr("stock - ?", qty),
+		}).Error
 	if err != nil {
 		return err
 	}
@@ -70,10 +71,11 @@ funct (r *ProductRepository) DeductProductStockByProductID(ctx context.Context, 
 }
 
 func (r *ProductRepository) AddProductStockByProductID(ctx context.Context, productID int64, qty int) error {
-	err := r.Database.WithContext(ctx).Table("productID").Model(&models.Product{}).
-			Updates(map[string]interface{}{
-				"stock": gorm.Expr("stock + %d", qty),
-			}).Where("id = ?", productID).Error
+	err := r.Database.WithContext(ctx).Table("product").Model(&models.Product{}).
+		Where("id = ?", productID).
+		Updates(map[string]interface{}{
+			"stock": gorm.Expr("stock + ?", qty),
+		}).Error
 	if err != nil {
 		return err
 	}
@@ -82,7 +84,7 @@ func (r *ProductRepository) AddProductStockByProductID(ctx context.Context, prod
 }
 
 // Sava() = Create or Update
-func (r *ProductRepository) UpdateProduct(ctx context.Context, product *models.Products) (*models.Product, error) {
+func (r *ProductRepository) UpdateProduct(ctx context.Context, product *models.Product) (*models.Product, error) {
 	err := r.Database.WithContext(ctx).Table("product").Save(product).Error
 	if err != nil {
 		return nil, err
@@ -123,7 +125,7 @@ func (r *ProductRepository) SearchProduct(ctx context.Context, param models.Sear
 	var totalCount int64
 
 	query := r.Database.WithContext(ctx).Table("product").
-		Select("product.id, product.name, product.description, product.price, product.stock, product.category_id, product_category.name as category_name")
+		Select("product.id, product.name, product.description, product.price, product.stock, product.category_id, product_category.name as category_name").
 		Joins("JOIN product_category ON product.category_id = product_category.id")
 	
 	if param.Name != "" {
@@ -146,7 +148,7 @@ func (r *ProductRepository) SearchProduct(ctx context.Context, param models.Sear
 	// pagination
 	
 	// total counts
-	query.Model(&model.Product{}).Count(&totalCount)
+	query.Model(&models.Product{}).Count(&totalCount)
 
 	// default order by
 	if param.OrderBy == "" {
