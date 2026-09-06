@@ -32,6 +32,18 @@ func (uc *ProductUsecase) CreateNewProduct(ctx context.Context, param *models.Pr
 	return productID, nil
 }
 
+func (uc *ProductUsecase) CreateNewProductCategory(ctx context.Context, param *models.ProductCategory) (int, error) {
+	productCategoryID, err := uc.ProductService.CreateNewProductCategory(ctx, param)
+	if err != nil {
+		log.Logger.WithFields(logrus.Fields{
+			"name": param.Name,
+		}).Errorf("uc.ProductService.CreateNewProductCategory() got error %v", err)
+		return 0, err
+	}
+
+	return productCategoryID, nil
+}
+
 func (uc *ProductUsecase) EditProduct(ctx context.Context, param *models.Product) (*models.Product, error) {
 	product, err := uc.ProductService.EditProduct(ctx, param)
 	if err != nil {
@@ -41,8 +53,26 @@ func (uc *ProductUsecase) EditProduct(ctx context.Context, param *models.Product
 	return product, nil
 }
 
+func (uc *ProductUsecase) EditProductCategory(ctx context.Context, param *models.ProductCategory) (*models.ProductCategory, error) {
+	productCategory, err := uc.ProductService.EditProductCategory(ctx, param)
+	if err != nil {
+		return nil, err
+	}
+
+	return productCategory, nil
+}
+
 func (uc *ProductUsecase) DeleteProduct(ctx context.Context, productID int64) error {
 	err := uc.ProductService.DeleteProduct(ctx, productID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (uc *ProductUsecase) DeleteProductCategory(ctx context.Context, productCategoryID int) error {
+	err := uc.ProductService.DeleteProductCategory(ctx, productCategoryID)
 	if err != nil {
 		return err
 	}

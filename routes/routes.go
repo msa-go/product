@@ -13,4 +13,5 @@ func SetupRoutes(router *gin.Engine, productHandler handler.ProductHandler) {
 
 	// 상품 및 카테고리 CUD - action 필드로 처리
 	api.POST("/v1/product", productHandler.ProductManagement)
+	api.POST("/v1/product_category", productHandler.ProductCategoryManagement)
 }

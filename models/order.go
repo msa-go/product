@@ -18,3 +18,8 @@ type ProductCategory struct {
 	ID   int    `json:"id"`
 	Name string `json:"name"`
 }
+
+type ProductCategoryManagementParameter struct {
+	Action string `json:"action"`
+	ProductCategory
+}
